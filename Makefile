@@ -1,5 +1,6 @@
 CC=g++
 CXXFLAGS=-g -Wall -pedantic -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Wno-format -Wno-long-long -I.
+LDFLAGS=
 
 ifeq ($(shell uname), Linux)
 	CXXFLAGS+=-std=c++11
@@ -31,11 +32,23 @@ else
 			CXXFLAGS+=-DHAVE_SSL
 
 			LIBS=-lssl -lcrypto -lsocket -lsendfile -lnsl
+		else
+			ifeq ($(shell uname), Minix)
+				CC=clang++
+				CXXFLAGS+=-std=c++11
+
+				CXXFLAGS+=-I/usr/pkg/include
+				CXXFLAGS+=-DHAVE_POLL
+				CXXFLAGS+=-DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+				CXXFLAGS+=-DHAVE_TIMEGM
+				CXXFLAGS+=-DHAVE_SSL
+
+				LDFLAGS+=-L/usr/pkg/lib
+				LIBS=-lssl -lcrypto
+			endif
 		endif
 	endif
 endif
-
-LDFLAGS=
 
 MAKEDEPEND=${CC} -MM
 PROGRAM=downloader
@@ -79,7 +92,7 @@ DEPS:= ${OBJS:%.o=%.d}
 all: $(PROGRAM)
 
 ${PROGRAM}: ${OBJS}
-	${CC} ${CXXFLAGS} ${LDFLAGS} ${OBJS} ${LIBS} -o $@
+	${CC} ${LDFLAGS} ${OBJS} ${LIBS} -o $@
 
 clean:
 	rm -f ${PROGRAM} ${OBJS} ${DEPS}

@@ -269,7 +269,8 @@ bool net::http::downloader::resolve(const char* host, socket_address& addr)
 #elif defined(__FreeBSD__) || \
       defined(__OpenBSD__) || \
       defined(__NetBSD__) || \
-      defined(__DragonFly__)
+      defined(__DragonFly__) || \
+      defined(__minix)
   if ((result = gethostbyname(host)) == NULL) {
 #elif defined(__sun__)
   int error;

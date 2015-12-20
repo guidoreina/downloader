@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/event.h>
 #include "net/fdmap.h"
 #include "io/observer.h"

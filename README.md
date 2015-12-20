@@ -1,7 +1,7 @@
 downloader
 ==========
 
-downloader is an asynchronous event-driven downloader for HTTP/HTTPS which runs under Linux, FreeBSD and Solaris.
+downloader is an asynchronous event-driven downloader for HTTP/HTTPS which runs under Linux, FreeBSD, Solaris and Minix.
 
 downloader checks periodically whether there is a new file with URLs, when one is found, it downloads `<max-connections>` URLs at a time and saves them in the directory `<data>`.
 

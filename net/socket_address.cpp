@@ -133,7 +133,8 @@ bool net::socket_address::operator==(const socket_address& addr) const
 #elif defined(__FreeBSD__) || \
       defined(__OpenBSD__) || \
       defined(__NetBSD__) || \
-      defined(__DragonFly__)
+      defined(__DragonFly__) || \
+      defined(__minix)
            (((addr1->sin6_addr.__u6_addr.__u6_addr32[0] ^
               addr2->sin6_addr.__u6_addr.__u6_addr32[0]) |
              (addr1->sin6_addr.__u6_addr.__u6_addr32[1] ^
