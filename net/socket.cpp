@@ -563,6 +563,16 @@ bool net::socket::_M_accept(socket& s,
   }
 
   s._M_fd = fd;
+#elif HAVE_PACCEPT
+  if ((fd = paccept(_M_fd,
+                    reinterpret_cast<struct sockaddr*>(addr),
+                    addrlen,
+                    NULL,
+                    SOCK_NONBLOCK)) < 0) {
+    return false;
+  }
+
+  s._M_fd = fd;
 #else
   if ((fd = ::accept(_M_fd,
                      reinterpret_cast<struct sockaddr*>(addr),

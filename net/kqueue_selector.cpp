@@ -45,12 +45,22 @@ bool net::selector::add(unsigned fd,
   unsigned nevents;
 
   if (type == fdtype::kFdSocket) {
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     EV_SET(&ev[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
     EV_SET(&ev[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+#elif defined(__NetBSD__) || defined(__minix)
+    EV_SET(&ev[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, 0);
+    EV_SET(&ev[1], fd, EVFILT_WRITE, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, 0);
+#endif
 
     nevents = 2;
   } else {
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
     EV_SET(&ev[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, NULL);
+#elif defined(__NetBSD__) || defined(__minix)
+    EV_SET(&ev[0], fd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, 0);
+#endif
+
     nevents = 1;
   }
 

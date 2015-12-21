@@ -260,7 +260,10 @@ bool net::uri::uri::normalize(uri& other) const
     // If not a standard port...
     if (_M_hier_part.port != 0) {
       *otherd++ = ':';
-      otherd += sprintf(otherd, "%u", _M_hier_part.port);
+
+      const char* otherend = other._M_uri.data() + other._M_uri.capacity();
+
+      otherd += snprintf(otherd, otherend - otherd, "%u", _M_hier_part.port);
     }
 
     other._M_hier_part.port = _M_hier_part.port;

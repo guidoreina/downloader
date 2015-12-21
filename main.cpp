@@ -17,7 +17,17 @@ int main(int argc, const char** argv)
 {
   const char* urls_file = net::http::downloader::kDefaultUrlsFile;
   const char* dir = net::http::downloader::kDefaultDirectory;
+
+#if defined(__OpenBSD__)
+  #if defined(__x86_64__)
+    uint64_t max_connections = net::http::downloader::kDefaultConnections;
+  #else
+    uint32_t max_connections = net::http::downloader::kDefaultConnections;
+  #endif
+#else
   size_t max_connections = net::http::downloader::kDefaultConnections;
+#endif
+
   const char* user_agent = NULL;
 
   // Check arguments.
