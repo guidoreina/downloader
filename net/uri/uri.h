@@ -249,7 +249,12 @@ namespace net {
 
     inline const string::slice& uri::path() const
     {
-      return _M_hier_part.path;
+      if (_M_hier_part.path.length() > 0) {
+        return _M_hier_part.path;
+      } else {
+        static const string::slice root("/", 1);
+        return root;
+      }
     }
 
     inline const string::slice& uri::query() const
