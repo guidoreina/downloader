@@ -478,20 +478,47 @@ bool net::socket::wait_readable(int timeout)
 
   fd.revents = 0;
 
-  return (poll(&fd, 1, timeout) > 0);
+  switch (poll(&fd, 1, timeout)) {
+    case 0: // Timeout.
+      errno = ETIMEDOUT;
+
+      // Fall through.
+    case -1:
+      return false;
+    default:
+      return true;
+  }
 #else
   fd_set rfds;
   FD_ZERO(&rfds);
   FD_SET(_M_fd, &rfds);
 
   if (timeout < 0) {
-    return (select(_M_fd + 1, &rfds, NULL, NULL, NULL) > 0);
+    switch (select(_M_fd + 1, &rfds, NULL, NULL, NULL)) {
+      case 0: // Timeout.
+        errno = ETIMEDOUT;
+
+        // Fall through.
+      case -1:
+        return false;
+      default:
+        return true;
+    }
   } else {
     struct timeval tv;
     tv.tv_sec = timeout / 1000;
     tv.tv_usec = (timeout % 1000) * 1000;
 
-    return (select(_M_fd + 1, &rfds, NULL, NULL, &tv) > 0);
+    switch (select(_M_fd + 1, &rfds, NULL, NULL, &tv)) {
+      case 0: // Timeout.
+        errno = ETIMEDOUT;
+
+        // Fall through.
+      case -1:
+        return false;
+      default:
+        return true;
+    }
   }
 #endif
 }
@@ -504,20 +531,47 @@ bool net::socket::wait_writable(int timeout)
   fd.events = POLLOUT;
   fd.revents = 0;
 
-  return (poll(&fd, 1, timeout) > 0);
+  switch (poll(&fd, 1, timeout)) {
+    case 0: // Timeout.
+      errno = ETIMEDOUT;
+
+      // Fall through.
+    case -1:
+      return false;
+    default:
+      return true;
+  }
 #else
   fd_set wfds;
   FD_ZERO(&wfds);
   FD_SET(_M_fd, &wfds);
 
   if (timeout < 0) {
-    return (select(_M_fd + 1, NULL, &wfds, NULL, NULL) > 0);
+    switch (select(_M_fd + 1, NULL, &wfds, NULL, NULL)) {
+      case 0: // Timeout.
+        errno = ETIMEDOUT;
+
+        // Fall through.
+      case -1:
+        return false;
+      default:
+        return true;
+    }
   } else {
     struct timeval tv;
     tv.tv_sec = timeout / 1000;
     tv.tv_usec = (timeout % 1000) * 1000;
 
-    return (select(_M_fd + 1, NULL, &wfds, NULL, &tv) > 0);
+    switch (select(_M_fd + 1, NULL, &wfds, NULL, &tv)) {
+      case 0: // Timeout.
+        errno = ETIMEDOUT;
+
+        // Fall through.
+      case -1:
+        return false;
+      default:
+        return true;
+    }
   }
 #endif
 }
