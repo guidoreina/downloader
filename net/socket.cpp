@@ -18,6 +18,10 @@
 #include "net/socket.h"
 #include "net/local_address.h"
 
+#ifndef MSG_NOSIGNAL
+  #define MSG_NOSIGNAL 0
+#endif
+
 bool net::socket::create(int domain, type type)
 {
   if ((_M_fd = ::socket(domain, static_cast<int>(type), 0)) < 0) {
@@ -214,7 +218,8 @@ ssize_t net::socket::write(const void* buf, size_t count, int timeout)
 {
   if (timeout == 0) {
     ssize_t ret;
-    while (((ret = send(_M_fd, buf, count, 0)) < 0) && (errno == EINTR));
+    while (((ret = send(_M_fd, buf, count, MSG_NOSIGNAL)) < 0) &&
+           (errno == EINTR));
 
     return ret;
   } else {
@@ -223,7 +228,7 @@ ssize_t net::socket::write(const void* buf, size_t count, int timeout)
 
     do {
       ssize_t ret;
-      if ((ret = send(_M_fd, b, count - written, 0)) < 0) {
+      if ((ret = send(_M_fd, b, count - written, MSG_NOSIGNAL)) < 0) {
         switch (errno) {
           case EAGAIN:
             if (!wait_writable(timeout)) {
@@ -255,9 +260,20 @@ ssize_t net::socket::writev(const struct iovec* iov,
                             unsigned iovcnt,
                             int timeout)
 {
+  struct msghdr msg;
+  msg.msg_name = NULL;
+  msg.msg_namelen = 0;
+  msg.msg_iovlen = iovcnt;
+  msg.msg_control = NULL;
+  msg.msg_controllen = 0;
+  msg.msg_flags = 0;
+
   if (timeout == 0) {
+    msg.msg_iov = const_cast<struct iovec*>(iov);
+
     ssize_t ret;
-    while (((ret = ::writev(_M_fd, iov, iovcnt)) < 0) && (errno == EINTR));
+    while (((ret = sendmsg(_M_fd, &msg, MSG_NOSIGNAL)) < 0) &&
+           (errno == EINTR));
 
     return ret;
   } else {
@@ -276,12 +292,12 @@ ssize_t net::socket::writev(const struct iovec* iov,
       total += vec[i].iov_len;
     }
 
-    struct iovec* v = vec;
+    msg.msg_iov = vec;
     size_t written = 0;
 
     do {
       ssize_t ret;
-      if ((ret = ::writev(_M_fd, v, iovcnt)) < 0) {
+      if ((ret = sendmsg(_M_fd, &msg, MSG_NOSIGNAL)) < 0) {
         switch (errno) {
           case EAGAIN:
             if (!wait_writable(timeout)) {
@@ -303,16 +319,18 @@ ssize_t net::socket::writev(const struct iovec* iov,
           return -1;
         }
 
-        while (static_cast<size_t>(ret) >= v->iov_len) {
-          ret -= v->iov_len;
+        while (static_cast<size_t>(ret) >= msg.msg_iov->iov_len) {
+          ret -= msg.msg_iov->iov_len;
 
-          v++;
-          iovcnt--;
+          msg.msg_iov++;
+          msg.msg_iovlen--;
         }
 
         if (ret > 0) {
-          v->iov_base = reinterpret_cast<uint8_t*>(v->iov_base) + ret;
-          v->iov_len -= ret;
+          msg.msg_iov->iov_base =
+                        reinterpret_cast<uint8_t*>(msg.msg_iov->iov_base) + ret;
+
+          msg.msg_iov->iov_len -= ret;
         }
       }
     } while (true);
@@ -330,7 +348,7 @@ bool net::socket::sendto(const void* buf,
     while (((ret = ::sendto(_M_fd,
                             buf,
                             len,
-                            0,
+                            MSG_NOSIGNAL,
                             reinterpret_cast<const struct sockaddr*>(&addr),
                             addr.size())) < 0) &&
            (errno == EINTR));
@@ -339,7 +357,7 @@ bool net::socket::sendto(const void* buf,
       if ((ret = ::sendto(_M_fd,
                           buf,
                           len,
-                          0,
+                          MSG_NOSIGNAL,
                           reinterpret_cast<const struct sockaddr*>(&addr),
                           addr.size())) < 0) {
         switch (errno) {

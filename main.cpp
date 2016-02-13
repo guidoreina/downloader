@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <sys/socket.h>
 #include "net/http/downloader.h"
 #include "util/number.h"
 
@@ -109,8 +110,11 @@ int main(int argc, const char** argv)
   struct sigaction act;
   sigemptyset(&act.sa_mask);
   act.sa_flags = 0;
+
+#ifndef MSG_NOSIGNAL
   act.sa_handler = SIG_IGN;
   sigaction(SIGPIPE, &act, NULL);
+#endif // MSG_NOSIGNAL
 
   act.sa_handler = signal_handler;
   sigaction(SIGTERM, &act, NULL);
