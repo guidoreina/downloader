@@ -13,7 +13,7 @@ namespace net {
       socket_address(const socket_address& addr);
 
       // Get size.
-      size_t size() const;
+      socklen_t size() const;
 
       // Build.
       bool build(const char* address, in_port_t port);

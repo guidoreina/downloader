@@ -6,15 +6,15 @@
 #include "net/local_address.h"
 #include "util/ctype.h"
 
-size_t net::socket_address::size() const
+socklen_t net::socket_address::size() const
 {
   switch (ss_family) {
     case AF_INET:
-      return sizeof(ipv4_address);
+      return static_cast<socklen_t>(sizeof(ipv4_address));
     case AF_INET6:
-      return sizeof(ipv6_address);
+      return static_cast<socklen_t>(sizeof(ipv6_address));
     case AF_UNIX:
-      return sizeof(local_address);
+      return static_cast<socklen_t>(sizeof(local_address));
     default:
       return 0;
   }
