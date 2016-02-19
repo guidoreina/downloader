@@ -24,6 +24,12 @@ namespace net {
 
       // Assignment operator.
       socket_address& operator=(const socket_address& addr);
+
+      // To string with port.
+      const char* to_string_with_port(char* s, size_t n) const;
+
+      // To string without port.
+      const char* to_string_without_port(char* s, size_t n) const;
   };
 
   inline socket_address::socket_address()

@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <errno.h>
 #include "net/socket_address.h"
 #include "net/ipv4_address.h"
 #include "net/ipv6_address.h"
@@ -54,6 +56,13 @@ bool net::socket_address::build(const char* address, in_port_t port)
 
 bool net::socket_address::build(const char* address)
 {
+  // Unix socket?
+  if (*address == '/') {
+    local_address* addr = reinterpret_cast<local_address*>(this);
+    addr->sun_family = AF_UNIX;
+    return addr->set_path(address);
+  }
+
   // Search the last colon (for IPv6 there might be more than one).
   const char* colon = NULL;
   const char* p = address;
@@ -165,5 +174,105 @@ bool net::socket_address::operator==(const socket_address& addr) const
       }
     default:
       return false;
+  }
+}
+
+const char* net::socket_address::to_string_with_port(char* s, size_t n) const
+{
+  switch (ss_family) {
+    case AF_INET:
+      {
+        if (!inet_ntop(AF_INET,
+                       &reinterpret_cast<const ipv4_address*>(this)->sin_addr,
+                       s,
+                       n)) {
+          return NULL;
+        }
+
+        size_t len = strlen(s);
+        size_t left = n - len;
+
+        if (snprintf(s + len,
+                     left,
+                     ":%u",
+                     reinterpret_cast<const ipv4_address*>(this)->port())
+            >= static_cast<int>(left)) {
+          errno = ENOSPC;
+          return NULL;
+        }
+
+        return s;
+      }
+    case AF_INET6:
+      {
+        if (!inet_ntop(AF_INET6,
+                       &reinterpret_cast<const ipv6_address*>(this)->sin6_addr,
+                       s,
+                       n)) {
+          return NULL;
+        }
+
+        size_t len = strlen(s);
+        size_t left = n - len;
+
+        if (snprintf(s + len,
+                     left,
+                     ":%u",
+                     reinterpret_cast<const ipv6_address*>(this)->port())
+            >= static_cast<int>(left)) {
+          errno = ENOSPC;
+          return NULL;
+        }
+
+        return s;
+      }
+    case AF_UNIX:
+      {
+        const local_address* addr =
+                             reinterpret_cast<const local_address*>(this);
+
+        if (n < sizeof(addr->sun_path)) {
+          errno = ENOSPC;
+          return NULL;
+        }
+
+        return reinterpret_cast<char*>(
+                 memcpy(s, addr->sun_path, sizeof(addr->sun_path))
+               );
+      }
+    default:
+      return NULL;
+  }
+}
+
+const char* net::socket_address::to_string_without_port(char* s, size_t n) const
+{
+  switch (ss_family) {
+    case AF_INET:
+      return inet_ntop(AF_INET,
+                       &reinterpret_cast<const ipv4_address*>(this)->sin_addr,
+                       s,
+                       n);
+    case AF_INET6:
+      return inet_ntop(AF_INET6,
+                       &reinterpret_cast<const ipv6_address*>(this)->sin6_addr,
+                       s,
+                       n);
+    case AF_UNIX:
+      {
+        const local_address* addr =
+                             reinterpret_cast<const local_address*>(this);
+
+        if (n < sizeof(addr->sun_path)) {
+          errno = ENOSPC;
+          return NULL;
+        }
+
+        return reinterpret_cast<char*>(
+                 memcpy(s, addr->sun_path, sizeof(addr->sun_path))
+               );
+      }
+    default:
+      return NULL;
   }
 }
