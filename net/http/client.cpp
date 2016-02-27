@@ -110,6 +110,10 @@ io::event_handler::result net::http::client::run()
   do {
     switch (_M_state) {
       case state::kConnecting:
+        if (!_M_writable) {
+          return io::event_handler::result::kSuccess;
+        }
+
         // Get socket error.
         if ((!_M_socket.get_socket_error(err)) || (err != 0)) {
           return error();
