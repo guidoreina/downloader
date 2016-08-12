@@ -493,13 +493,26 @@ bool net::http::client::build_headers()
 {
   string::slice m(methods::name(_M_request->method()));
   const string::slice& path(_M_request->uri().path());
+  const string::slice& query(_M_request->uri().query());
 
-  if (!_M_out.format("%.*s %.*s HTTP/1.1\r\n",
-      m.length(),
-      m.data(),
-      path.length(),
-      path.data())) {
-    return false;
+  if (query.length() == 0) {
+    if (!_M_out.format("%.*s %.*s HTTP/1.1\r\n",
+        m.length(),
+        m.data(),
+        path.length(),
+        path.data())) {
+      return false;
+    }
+  } else {
+    if (!_M_out.format("%.*s %.*s?%.*s HTTP/1.1\r\n",
+        m.length(),
+        m.data(),
+        path.length(),
+        path.data(),
+        query.length(),
+        query.data())) {
+      return false;
+    }
   }
 
   if (!_M_headers.add(header::permanent_field_name::kConnection,
