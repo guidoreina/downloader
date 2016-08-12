@@ -10,7 +10,7 @@ ifeq ($(shell uname), Linux)
 	CXXFLAGS+=-DHAVE_TIMEGM -DHAVE_TIMEZONE
 	CXXFLAGS+=-DHAVE_POLLRDHUP -DHAVE_SSL
 
-	LIBS=-lssl
+	LIBS=-lssl -lcrypto
 else ifeq ($(shell uname), FreeBSD)
 	CC=g++49
 	CXXFLAGS+=-std=c++11
