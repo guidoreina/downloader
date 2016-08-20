@@ -1,0 +1,92 @@
+CC=g++
+CXXFLAGS=-g -Wall -pedantic -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -Wno-format -Wno-long-long -I.
+LDFLAGS=
+LIBS=
+
+ifeq ($(shell uname), Linux)
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-DHAVE_TCP_CORK -DHAVE_ACCEPT4 -DUSE_FIONBIO -DHAVE_EPOLL -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_SENDFILE -DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM -DHAVE_TIMEZONE
+	CXXFLAGS+=-DHAVE_POLLRDHUP -DHAVE_SSL
+else ifeq ($(shell uname), FreeBSD)
+	CC=g++49
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-DHAVE_TCP_NOPUSH -DHAVE_ACCEPT4 -DUSE_FIONBIO -DHAVE_KQUEUE -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_SENDFILE -DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM
+	CXXFLAGS+=-DHAVE_SSL
+else ifeq ($(shell uname), NetBSD)
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-DHAVE_PACCEPT -DUSE_FIONBIO -DHAVE_KQUEUE -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM
+	CXXFLAGS+=-DHAVE_SSL
+else ifeq ($(shell uname), OpenBSD)
+	CC=eg++
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-DHAVE_TCP_NOPUSH -DHAVE_ACCEPT4 -DUSE_FIONBIO -DHAVE_KQUEUE -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM
+	CXXFLAGS+=-DHAVE_SSL
+else ifeq ($(shell uname), DragonFly)
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-DHAVE_TCP_NOPUSH -DHAVE_ACCEPT4 -DUSE_FIONBIO -DHAVE_KQUEUE -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_SENDFILE -DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM
+	CXXFLAGS+=-DHAVE_SSL
+else ifeq ($(shell uname), SunOS)
+	CXXFLAGS+=-std=c++0x
+
+	CXXFLAGS+=-DHAVE_TCP_CORK -DHAVE_ACCEPT4 -DHAVE_PORT -DHAVE_POLL
+	CXXFLAGS+=-DHAVE_SENDFILE -DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEZONE
+	CXXFLAGS+=-DHAVE_SSL
+else ifeq ($(shell uname), Minix)
+	CC=clang++
+	CXXFLAGS+=-std=c++11
+
+	CXXFLAGS+=-I/usr/pkg/include
+	CXXFLAGS+=-DHAVE_POLL
+	CXXFLAGS+=-DHAVE_MMAP -DHAVE_PREAD -DHAVE_PWRITE
+	CXXFLAGS+=-DHAVE_TIMEGM
+	CXXFLAGS+=-DHAVE_SSL
+
+	LDFLAGS+=-L/usr/pkg/lib
+endif
+
+MAKEDEPEND=${CC} -MM
+PROGRAM=downloaded_file_processor
+
+OBJS =	constants/months_and_days.o string/buffer.o util/number.o util/ranges.o \
+	string/memcasemem.o net/ports.o net/http/header/permanent_header.o \
+	net/http/header/non_permanent_header.o net/http/header/headers.o \
+	net/uri/uri.o net/http/downloaded_file_processor.o \
+	downloaded_file_processor.o
+
+DEPS:= ${OBJS:%.o=%.d}
+
+all: $(PROGRAM)
+
+${PROGRAM}: ${OBJS}
+	${CC} ${LDFLAGS} ${OBJS} ${LIBS} -o $@
+
+clean:
+	rm -f ${PROGRAM} ${OBJS} ${DEPS}
+
+${OBJS} ${DEPS} ${PROGRAM} : Makefile.downloaded_file_processor
+
+.PHONY : all clean
+
+%.d : %.cpp
+	${MAKEDEPEND} ${CXXFLAGS} $< -MT ${@:%.d=%.o} > $@
+
+%.o : %.cpp
+	${CC} ${CXXFLAGS} -c -o $@ $<
+
+-include ${DEPS}
