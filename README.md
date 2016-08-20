@@ -27,3 +27,14 @@ Options:
   --max-connections <max-connections> (1 - 2048, default: 100).
   --user-agent <user-agent> (default: "").
 ```
+
+
+downloaded\_file\_processor
+===========================
+The `downloaded_file_processor` extracts all the absolute URIs of a downloaded file.
+
+The usage is:
+
+```
+Usage: ./downloaded_file_processor <filename>
+```
