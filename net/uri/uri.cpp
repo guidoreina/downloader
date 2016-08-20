@@ -283,7 +283,7 @@ bool net::uri::uri::normalize(uri& other) const
     do {
       if (*d == '%') {
         uint8_t c = (util::hex2dec(d[1]) * 16) + util::hex2dec(d[2]);
-        if (is_unreserved(c)) {
+        if (is_valid_path_char(&c, &c)) {
           *otherd++ = static_cast<char>(c);
         } else {
           *otherd++ = '%';
@@ -385,7 +385,7 @@ bool net::uri::uri::normalize(uri& other) const
     do {
       if (*d == '%') {
         uint8_t c = (util::hex2dec(d[1]) * 16) + util::hex2dec(d[2]);
-        if (is_unreserved(c)) {
+        if (is_valid_query_or_fragment_char(&c, &c)) {
           *otherd++ = static_cast<char>(c);
         } else {
           *otherd++ = '%';
@@ -416,7 +416,7 @@ bool net::uri::uri::normalize(uri& other) const
     do {
       if (*d == '%') {
         uint8_t c = (util::hex2dec(d[1]) * 16) + util::hex2dec(d[2]);
-        if (is_unreserved(c)) {
+        if (is_valid_query_or_fragment_char(&c, &c)) {
           *otherd++ = static_cast<char>(c);
         } else {
           *otherd++ = '%';
