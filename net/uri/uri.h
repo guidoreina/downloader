@@ -102,6 +102,9 @@ namespace net {
           // Constructor.
           parser();
 
+          // Clear.
+          void clear();
+
           // Initialize.
           bool init(const void* s, size_t n);
 
@@ -215,6 +218,7 @@ namespace net {
       _M_hier_part.path.clear();
       _M_query.clear();
       _M_fragment.clear();
+      _M_parser.clear();
     }
 
     inline string::slice uri::string() const
@@ -268,6 +272,11 @@ namespace net {
     }
 
     inline uri::parser::parser()
+    {
+      clear();
+    }
+
+    inline void uri::parser::clear()
     {
       schemelen = 0;
       userinfolen = 0;
